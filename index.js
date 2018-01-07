@@ -21,29 +21,56 @@ function updatePetStatus(pet) {
 
 function doHealthUpdate(pet) {
   //DO HEALTH DETORIATION
-  //if already sick decrease health by 1
-  if (pet.isSick) {
-    pet.healthMetric -= 1;
-  }
   //if overfed then decrease health by 1.5
   if (pet.isOverfed) {
-    pet.healthMetric -= 1.5;
+    pet.healthMetric -= 0.5;
     pet.isOverfed = false;
   }
   //for every hour over 4 hours since last fed then decrease health by 1
   var currentTime = new Date().getTime();
   var lastFedTime = new Date(pet.lastFed).getTime();
-  var hoursPassed = Math.floor(Math.abs(currentTime - lastFedTime) / 36e5) - 4;
-  if (hoursPassed > 0) {
-    pet.healthMetric -= hoursPassed;
+  var hoursPassedSinceFed = Math.floor(Math.abs(currentTime - lastFedTime) / 36e5) - 4;
+  if (hoursPassedSinceFed > 0) {
+    pet.healthMetric -= hoursPassedSinceFed;
   }
-  //for every hour over 4 hours since last cleaned then decrease health by 0.5
+  //for every hour over 4 hours since last cleaned then decrease health by 1
   var lastCleanedTime = new Date(pet.lastCleaned).getTime();
-  var hoursPassed = Math.floor(Math.abs(currentTime - lastCleanedTime) / 36e5) - 4;
-  if (hoursPassed > 0) {
-    pet.healthMetric -= hoursPassed / 2;
+  var hoursPassedSinceCleaneed = Math.floor(Math.abs(currentTime - lastCleanedTime) / 36e5) - 4;
+  if (hoursPassedSinceCleaneed > 0) {
+    pet.healthMetric -= hoursPassedSinceCleaneed / 2;
   }
-
+  
+  //for every hour above 2 since last calculating sickness,
+  // roll dice to determine if pet is now sick
+  var lastSicknessTime = new Date(pet.dateOfSicknessCalcuation).getTime();
+  var hoursPassed = Math.floor(Math.abs(currentTime - lastSicknessTime) / 36e5) - 2;
+  if (hoursPassed > 0) { 
+    pet.dateOfSicknessCalcuation = new Date().toISOString();
+  }
+  while (hoursPassed > 0 && pet.isAlive && pet.healthMetric < 4) {
+    hoursPassed -= 1;
+    //roll dice to determine if sick now
+    var diceRoll = Math.random();
+    if (pet.healthMetric >= 3 && pet.healthMetric < 4) {
+      //if health is 3-3.9 then 10% chance of sickness every hour
+      if (diceRoll < 0.1) {
+        pet.isSick = true;
+        pet.healthMetric -=1
+      }
+    } else if (pet.healthMetric >= 2 && pet.healthMetric < 3) {
+      //if health is 2-2.9 then 40% chance of sickness every hour
+      if (diceRoll < 0.4) {
+        pet.isSick = true;
+        pet.healthMetric -= 1
+      }
+    } else if (pet.healthMetric > 0 && pet.healthMetric < 2) {
+      //if health is 0.1-1.9 then 70% chance of sickness every hour
+      if (diceRoll < 0.7) {
+        pet.isSick = true;
+        pet.healthMetric -= 1
+      }
+    }
+  }
   
   //DO RESULTS OF DETORIATING HEALTH
   //Each year over 70 increases the pets chance of dying
@@ -60,36 +87,6 @@ function doHealthUpdate(pet) {
     pet.isAlive = false;
     pet.causeOfDeath = 'SICKNESS'
   }
-  //for every hour above 2 since last calculating sickness,
-  // roll dice to determine if pet is now sick
-  var lastSicknessTime = new Date(pet.dateOfSicknessCalcuation).getTime();
-  var hoursPassed = Math.floor(Math.abs(currentTime - lastSicknessTime) / 36e5) - 2;
-  if (hoursPassed > 0) { 
-    pet.dateOfSicknessCalcuation = new Date().toISOString();
-  }
-  while (hoursPassed > 0 && pet.isAlive && pet.healthMetric < 4) {
-    hoursPassed -= 1;
-    //roll dice to determine if sick now
-    var diceRoll = Math.random();
-    if (pet.healthMetric >= 3 && pet.healthMetric < 4) {
-      //if health is 3-3.9 then 10% chance of sickness every hour
-      if (diceRoll < 0.1) {
-        pet.isSick = true;
-      }
-    } else if (pet.healthMetric >= 2 && pet.healthMetric < 3) {
-      //if health is 2-2.9 then 40% chance of sickness every hour
-      if (diceRoll < 0.4) {
-        pet.isSick = true;
-      }
-    } else if (pet.healthMetric > 0 && pet.healthMetric < 2) {
-      //if health is 0.1-1.9 then 70% chance of sickness every hour
-      if (diceRoll < 0.7) {
-        pet.isSick = true;
-      }
-    }
-  }
-  //update status
-  if (pet.healthMetric) { }
 }
 
 function doHappinessUpdate(pet) {
