@@ -327,7 +327,7 @@ var handlers = {
     To keep your tamagotchi healthy you should regularly clean the litter tray and feed them.
     Be sure not to overfeed or overplay with your tamagotchi otherwise it will begin to have the opposite effect!
     When your tamagotchi becomes and adult there will be a chance that every time you play they will meet a partner.
-    If your tsamagotchi meets a partner be sure to keep them happy and healthy to increase the chance of offspring.
+    If your tamagotchi meets a partner be sure to keep them happy and healthy to increase the chance of offspring.
     Now what would you like to do?`
     var reprompt = `Remember - To find out your current pets status you can ask "How\'s my pet?". What would you like to do?' `;
     this.emit(':ask:', speechOutput, reprompt);
