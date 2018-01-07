@@ -267,27 +267,28 @@ var handlers = {
     //update last fed time
     //updatepet
     //inform user of pets status
+    this.emit(':tell', 'Feature coming soon');
   },
   //pet tamogitchi intent - increase happiness by 1
   'LovePetIntent': function () {
-
+    this.emit(':tell', 'Feature coming soon');
   },
   //play high/low with pet intent - earns credits, can overplay, increase happiness by 2
   //play left/right with pet intent - earns credits, can overplay, increase happiness by 2
   'PlayGameIntent': function () {
-
+    this.emit(':tell', 'Feature coming soon');
   },
   //cleanup after tamogotchi - costs credits, cant cleanup
   'CleanPetIntent': function () {
-
+    this.emit(':tell', 'Feature coming soon');
   },
   //treat sickness intent - costs medpack, sets health to 4
   'TreatSicknessIntent': function () {
-
+    this.emit(':tell', 'Feature coming soon');
   },
   //buy medpack - costs credits
   'BuyMedpackIntent': function () {
-
+    this.emit(':tell', 'Feature coming soon');
   },
   //information intent (get status of pet)
   'StatusIntent': function () {
@@ -297,7 +298,7 @@ var handlers = {
     //if they are not in database begin new tamagotchi convo
     if (player) {
       //Calculate new status' of pet
-      updatePet(player.pet)
+      updatePetStatus(player.pet)
       //report pets status
       var speechOutput = `Your pet is feeling ${player.pet.happyStatus} and he is ${player.pet.healthStatus}... 
       Your pet is a ${player.pet.age} year old ${player.pet.stage} and he weighs ${player.pet.weight} pounds...
