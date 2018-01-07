@@ -117,7 +117,7 @@ function doAgeCalculation(pet) {
       pet.hasAged = false;
     }
   } else if (hoursPassed <= 48 + 72) {
-    newAge = 3 + Math.floor((hoursPassed - 48) / 8));
+    newAge = 3 + Math.floor((hoursPassed - 48) / 8);
     if (newAge !== pet.age) {
       pet.age = newAge
       pet.hasAged = true;
@@ -135,7 +135,7 @@ function doAgeCalculation(pet) {
       pet.hasAged = false;
     }
   } else {
-    newAge = 20 + Math.floor((hoursPassed - 48 - 72 - 96) / 2.5));
+    newAge = 20 + Math.floor((hoursPassed - 48 - 72 - 96) / 2.5);
     if (newAge !== pet.age) {
       pet.age = newAge
       pet.hasAged = true;
@@ -175,24 +175,6 @@ var handlers = {
     });
   },
 
-  'AMAZON.HelpIntent': function () {
-    var speechOutput = `To keep your tamagotchi happy you should regularly ply with them.
-    To keep your tamagotchi healthy you should regularly clean the litter tray and feed them.
-    Be sure not to overfeed or overplay with your tamagotchi otherwise it will begin to have the opposite effect!
-    When your tamagotchi becomes and adult there will be a chance that every time you play they will meet a partner.
-    If your tsamagotchi meets a partner be sure to keep them happy and healthy to increase the chance of offspring.
-    Now what would you like to do?`
-    var reprompt = `Remember - To find out your current pets status you can ask "How\'s my pet?". What would you like to do?' `;
-    this.emit(':ask:', speechOutput, reprompt);
-  },
-
-  'AMAZON.CancelIntent': function () {
-    this.emit(':tell', 'Goodbye');
-  },
-
-  'AMAZON.StopIntent': function () {
-    this.emit(':tell', 'Goodbye');
-  },
   'CreateNewPetIntent': function () {
     console.info('ENTRY CreateNewPet');
     const intentObj = this.event.request.intent;
@@ -338,6 +320,25 @@ var handlers = {
     this.emit(':tell', 'Im sorry but something went wrong');
     console.info('EXIT Unhandled');
     return;
+  },
+
+  'AMAZON.HelpIntent': function () {
+    var speechOutput = `To keep your tamagotchi happy you should regularly ply with them.
+    To keep your tamagotchi healthy you should regularly clean the litter tray and feed them.
+    Be sure not to overfeed or overplay with your tamagotchi otherwise it will begin to have the opposite effect!
+    When your tamagotchi becomes and adult there will be a chance that every time you play they will meet a partner.
+    If your tsamagotchi meets a partner be sure to keep them happy and healthy to increase the chance of offspring.
+    Now what would you like to do?`
+    var reprompt = `Remember - To find out your current pets status you can ask "How\'s my pet?". What would you like to do?' `;
+    this.emit(':ask:', speechOutput, reprompt);
+  },
+
+  'AMAZON.CancelIntent': function () {
+    this.emit(':tell', 'Goodbye');
+  },
+
+  'AMAZON.StopIntent': function () {
+    this.emit(':tell', 'Goodbye');
   }
 };
 exports.handler = function (event, context, callback) {
