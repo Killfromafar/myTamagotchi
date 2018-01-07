@@ -1,0 +1,1 @@
+This is a tamagotchi game for use with Amazon Alexa
