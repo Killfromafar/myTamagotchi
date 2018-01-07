@@ -1,0 +1,91 @@
+{
+  "parserOptions": {
+    "ecmaVersion": 2015
+  },
+  "env": {
+    "es6": true,
+    "node": true
+  },
+  "plugins": [
+    "mocha",
+    "promise"
+  ],
+  "extends": [
+    "eslint:recommended",
+    "plugin:promise/recommended"
+  ],
+  "rules": {
+    "no-console": "off",
+
+    "curly": "error",
+    "dot-location": ["error", "property"],
+    "dot-notation": "error",
+    "eqeqeq": ["error", "allow-null"],
+    "no-caller": "error",
+    "no-eval": "warn",
+    "no-extend-native": "warn",
+    "no-iterator": "warn",
+    "no-loop-func": "warn",
+    "no-multi-spaces": "error",
+    "no-multi-str": "warn",
+    "no-proto": "warn",
+    "no-with": "error",
+
+    "strict": "error",
+
+    "no-use-before-define": "error",
+
+    "block-spacing": "error",
+    "brace-style": ["warn", "1tbs", { "allowSingleLine": true }],
+    "camelcase": ["error", {
+      "properties": "never"
+    }],
+    "comma-dangle": "error",
+    "comma-style": "error",
+    "consistent-this": ["error", "self"],
+    "eol-last": "warn",
+    "indent": ["error", 2],
+    "keyword-spacing": "error",
+    "linebreak-style": ["error", "unix"],
+    "max-depth": ["error", 3],
+    "max-len": ["error", 120],
+    "max-statements": ["warn", 16],
+    "new-cap": ["error", {
+      "capIsNewExceptions": [
+        "PlaybackStarted",
+        "PlaybackFinished",
+        "PlaybackStopped",
+        "PlaybackNearlyFinished",
+        "PlaybackFailed",
+        "PlayPodcastIntent",
+        "PlayRadioIntent",
+        "AlexaSkillEvent.SkillDisabled",
+        "AlexaSkillEvent.SkillEnabled"
+      ]
+    }],
+    "no-lonely-if": "warn",
+    "no-multiple-empty-lines": "error",
+    "no-trailing-spaces": "warn",
+    "no-unneeded-ternary": "error",
+    "one-var": ["error", "never"],
+    "quotes": ["error", "single"],
+    "quote-props": ["error", "as-needed"],
+    "semi": ["error", "always"],
+    "space-before-blocks": "error",
+    "space-before-function-paren": ["error", {
+      "anonymous": "always",
+      "named": "never"
+      }],
+    "space-in-parens": "error",
+
+    "arrow-parens": "error",
+    "arrow-spacing": "error",
+    "prefer-const": "error",
+
+    "mocha/no-exclusive-tests": "error",
+    "mocha/no-return-and-callback": "error",
+    "mocha/no-skipped-tests": "error",
+
+    "promise/always-return": "off"
+  }
+}
