@@ -50,19 +50,6 @@
     "max-depth": ["error", 3],
     "max-len": ["error", 120],
     "max-statements": ["warn", 16],
-    "new-cap": ["error", {
-      "capIsNewExceptions": [
-        "PlaybackStarted",
-        "PlaybackFinished",
-        "PlaybackStopped",
-        "PlaybackNearlyFinished",
-        "PlaybackFailed",
-        "PlayPodcastIntent",
-        "PlayRadioIntent",
-        "AlexaSkillEvent.SkillDisabled",
-        "AlexaSkillEvent.SkillEnabled"
-      ]
-    }],
     "no-lonely-if": "warn",
     "no-multiple-empty-lines": "error",
     "no-trailing-spaces": "warn",
