@@ -329,8 +329,8 @@ var handlers = {
     When your tamagotchi becomes and adult there will be a chance that every time you play they will meet a partner.
     If your tamagotchi meets a partner be sure to keep them happy and healthy to increase the chance of offspring.
     Now what would you like to do?`
-    var reprompt = `Remember - To find out your current pets status you can ask "How\'s my pet?". What would you like to do?' `;
-    this.emit(':ask:', speechOutput, reprompt);
+    var reprompt = `Remember - To find out your current pets status you can ask "How's my pet?". What would you like to do?' `;
+    this.emit(':ask', speechOutput, reprompt);
   },
 
   'AMAZON.CancelIntent': function () {
