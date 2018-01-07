@@ -19,34 +19,133 @@ function updatePetStatus(pet) {
   doHappinessUpdate(pet);
 }
 
-function doHealthUpdate(pet) { 
-  
+function doHealthUpdate(pet) {
+  //DO HEALTH DETORIATION
   //if already sick decrease health by 1
+  if (pet.isSick) {
+    pet.healthMetric -= 1;
+  }
+  //if overfed then decrease health by 1.5
+  if (pet.isOverfed) {
+    pet.healthMetric -= 1.5;
+    pet.isOverfed = false;
+  }
   //for every hour over 4 hours since last fed then decrease health by 1
+  var currentTime = new Date().getTime();
+  var lastFedTime = new Date(pet.lastFed).getTime();
+  var hoursPassed = Math.floor(Math.abs(currentTime - lastFedTime) / 36e5) - 4;
+  if (hoursPassed > 0) {
+    pet.healthMetric -= hoursPassed;
+  }
   //for every hour over 4 hours since last cleaned then decrease health by 0.5
+  var lastCleanedTime = new Date(pet.lastCleaned).getTime();
+  var hoursPassed = Math.floor(Math.abs(currentTime - lastCleanedTime) / 36e5) - 4;
+  if (hoursPassed > 0) {
+    pet.healthMetric -= hoursPassed / 2;
+  }
 
-  //if health is now 3-3.9 then roll dice for 40% of sickness
-  //if health is 2-2.9 then 70% chance of sickness
-  //if health is 0.1-1.9 then 90% of sickness
-  //if health is 0 or less then die
+  
+  //DO RESULTS OF DETORIATING HEALTH
+  //Each year over 70 increases the pets chance of dying
+  if (pet.age > 70 && pet.hasAged) { 
+    var chanceOfDeath = (pet.age - 70) / 10;
+    var diceRoll = Math.random();
+    if (diceRoll < chanceOfDeath) { 
+      pet.isAlive = false;
+      pet.causeOfDeath = 'AGE';
+    }
+  }
+  //if health is 0 or below then die
+  if (pet.healthMetric <= 0) {
+    pet.isAlive = false;
+    pet.causeOfDeath = 'SICKNESS'
+  }
+  //for every hour above 2 since last calculating sickness,
+  // roll dice to determine if pet is now sick
+  var lastSicknessTime = new Date(pet.dateOfSicknessCalcuation).getTime();
+  var hoursPassed = Math.floor(Math.abs(currentTime - lastSicknessTime) / 36e5) - 2;
+  if (hoursPassed > 0) { 
+    pet.dateOfSicknessCalcuation = new Date().toISOString();
+  }
+  while (hoursPassed > 0 && pet.isAlive && pet.healthMetric < 4) {
+    hoursPassed -= 1;
+    //roll dice to determine if sick now
+    var diceRoll = Math.random();
+    if (pet.healthMetric >= 3 && pet.healthMetric < 4) {
+      //if health is 3-3.9 then 10% chance of sickness every hour
+      if (diceRoll < 0.1) {
+        pet.isSick = true;
+      }
+    } else if (pet.healthMetric >= 2 && pet.healthMetric < 3) {
+      //if health is 2-2.9 then 40% chance of sickness every hour
+      if (diceRoll < 0.4) {
+        pet.isSick = true;
+      }
+    } else if (pet.healthMetric > 0 && pet.healthMetric < 2) {
+      //if health is 0.1-1.9 then 70% chance of sickness every hour
+      if (diceRoll < 0.7) {
+        pet.isSick = true;
+      }
+    }
+  }
+  //update status
+  if (pet.healthMetric) { }
 }
 
-function doAgeCalculation(pet) { 
+function doHappinessUpdate(pet) {
+
+  //if sick decrease happiness by 1
+  //if overplayed decrease happiness by 1.5
+  //for every hour over 4 hours since last played then decrease happiness by 1
+  //for every hour over 4 hours since last cleaned then decrease happiness by 0.5
+
+  //if happiness is now 3-3.9 then roll dice for 40% of sickness
+  //if happiness is 2-2.9 then 70% chance of sickness
+  //if happiness is 0.1-1.9 then 90% of sickness
+  //if happiness is 0 or less then die
+}
+
+function doAgeCalculation(pet) {
   var dob = new Date(pet.dateOfBirth);
   var currentDate = new Date();
   var hoursPassed = Math.floor(Math.abs(currentDate.getTime() - dob.getTime()) / 36e5);
+  let newAge = 0;
   if (hoursPassed <= 48) {
-    pet.age = Math.floor(hoursPassed / 16);
-    pet.stage = 'BABY';
+    newAge = Math.floor(hoursPassed / 16);
+    if (newAge !== pet.age) {
+      pet.age = newAge
+      pet.hasAged = true;
+      pet.stage = 'BABY';
+    } else { 
+      pet.hasAged = false;
+    }
   } else if (hoursPassed <= 48 + 72) {
-    pet.age = 3 + Math.floor((hoursPassed - 48) / 8));
-    pet.stage = 'CHILD'
+    newAge = 3 + Math.floor((hoursPassed - 48) / 8));
+    if (newAge !== pet.age) {
+      pet.age = newAge
+      pet.hasAged = true;
+      pet.stage = 'CHILD';
+    } else {
+      pet.hasAged = false;
+    }
   } else if (hoursPassed <= 48 + 72 + 96) {
-    pet.age = 12 + Math.floor((hoursPassed - 48 - 72) / 12);
-    pet.stage = 'TEEN'
-  } else { 
-    pet.age = 20 + Math.floor((hoursPassed - 48 - 72 - 96) / 2.5));
-    pet.stage = 'ADULT'
+    newAge = 12 + Math.floor((hoursPassed - 48 - 72) / 12);
+    if (newAge !== pet.age) {
+      pet.age = newAge
+      pet.hasAged = true;
+      pet.stage = 'TEEN';
+    } else {
+      pet.hasAged = false;
+    }
+  } else {
+    newAge = 20 + Math.floor((hoursPassed - 48 - 72 - 96) / 2.5));
+    if (newAge !== pet.age) {
+      pet.age = newAge
+      pet.hasAged = true;
+      pet.stage = 'ADULT';
+    } else {
+      pet.hasAged = false;
+    }
   }
 }
 
@@ -54,7 +153,7 @@ var handlers = {
   'LaunchRequest': function () {
     console.info('ENTRY LaunchRequest');
     //check database for this user
-    getPlayer(this.event.context.System.user.userId).then((player) => { 
+    getPlayer(this.event.context.System.user.userId).then((player) => {
       //if they are not in database begin new tamagotchi convo
       if (player) {
         //Calculate new status' of pet
@@ -91,11 +190,13 @@ var handlers = {
   },
 
   'AMAZON.CancelIntent': function () {
+    this.emit(':tell', 'Goodbye');
   },
 
   'AMAZON.StopIntent': function () {
+    this.emit(':tell', 'Goodbye');
   },
-  'CreateNewPet': function () {
+  'CreateNewPetIntent': function () {
     console.info('ENTRY CreateNewPet');
     const intentObj = this.event.request.intent;
     if (intentObj.confirmationStatus === 'CONFIRMED') {
@@ -114,6 +215,7 @@ var handlers = {
               weight: 6,
               isAlive: true,
               isSick: false,
+              dateOfSicknessCalcuation: new Date().toISOString(),
               lastPlayedWith: new Date().toISOString(),
               lastFed: new Date().toISOString(),
               lastCleaned: new Date().toISOString()
@@ -147,7 +249,12 @@ var handlers = {
             age: 0,
             stage: 'BABY',
             weight: 6,
-            isAlive: true
+            isAlive: true,
+            isSick: false,
+            dateOfSicknessCalcuation: new Date().toISOString(),
+            lastPlayedWith: new Date().toISOString(),
+            lastFed: new Date().toISOString(),
+            lastCleaned: new Date().toISOString()
           }
           dynamoDBHelper.put(config.get('dynamo.tables.players.name'), existingPlayer);
           //report pets status
@@ -173,19 +280,36 @@ var handlers = {
     }
   },
   //feed tamagotchi intent - costs credits, can feed even when full, snack increase health by 1, meal by 2
-
+  'FeedPetIntent': function () {
+    //if not enough credits do nothing and inform user
+    //if feeding meal deduct 4 credits and increase health by 2
+    //if feeding snack deduct 2 credits and increase health by 1
+    //if health is > 5 set overrfed to true and set health to 5
+    //update last fed time
+    //updatepet
+    //inform user of pets status
+  },
   //pet tamogitchi intent - increase happiness by 1
+  'LovePetIntent': function () {
 
+  },
   //play high/low with pet intent - earns credits, can overplay, increase happiness by 2
-
   //play left/right with pet intent - earns credits, can overplay, increase happiness by 2
+  'PlayGameIntent': function () {
 
+  },
   //cleanup after tamogotchi - costs credits, cant cleanup
+  'CleanPetIntent': function () {
 
+  },
   //treat sickness intent - costs medpack, sets health to 4
+  'TreatSicknessIntent': function () {
 
+  },
   //buy medpack - costs credits
+  'BuyMedpackIntent': function () {
 
+  },
   //information intent (get status of pet)
   'StatusIntent': function () {
     console.info('ENTRY StatusIntent');
