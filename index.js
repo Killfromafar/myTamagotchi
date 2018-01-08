@@ -39,12 +39,12 @@ function doHealthUpdate(pet) {
   if (hoursPassedSinceCleaneed > 0) {
     pet.healthMetric -= hoursPassedSinceCleaneed / 2;
   }
-  
+
   //for every hour above 2 since last calculating sickness,
   // roll dice to determine if pet is now sick
   var lastSicknessTime = new Date(pet.dateOfSicknessCalcuation).getTime();
   var hoursPassed = Math.floor(Math.abs(currentTime - lastSicknessTime) / 36e5) - 2;
-  if (hoursPassed > 0) { 
+  if (hoursPassed > 0) {
     pet.dateOfSicknessCalcuation = new Date().toISOString();
   }
   while (hoursPassed > 0 && pet.isAlive && pet.healthMetric < 4) {
@@ -55,7 +55,7 @@ function doHealthUpdate(pet) {
       //if health is 3-3.9 then 10% chance of sickness every hour
       if (diceRoll < 0.1) {
         pet.isSick = true;
-        pet.healthMetric -=1
+        pet.healthMetric -= 1
       }
     } else if (pet.healthMetric >= 2 && pet.healthMetric < 3) {
       //if health is 2-2.9 then 40% chance of sickness every hour
@@ -71,13 +71,13 @@ function doHealthUpdate(pet) {
       }
     }
   }
-  
+
   //DO RESULTS OF DETORIATING HEALTH
   //Each year over 70 increases the pets chance of dying
-  if (pet.age > 70 && pet.hasAged) { 
+  if (pet.age > 70 && pet.hasAged) {
     var chanceOfDeath = (pet.age - 70) / 10;
     var diceRoll = Math.random();
-    if (diceRoll < chanceOfDeath) { 
+    if (diceRoll < chanceOfDeath) {
       pet.isAlive = false;
       pet.causeOfDeath = 'AGE';
     }
@@ -113,7 +113,7 @@ function doAgeCalculation(pet) {
       pet.age = newAge
       pet.hasAged = true;
       pet.stage = 'BABY';
-    } else { 
+    } else {
       pet.hasAged = false;
     }
   } else if (hoursPassed <= 48 + 72) {
@@ -260,6 +260,29 @@ var handlers = {
   },
   //feed tamagotchi intent - costs credits, can feed even when full, snack increase health by 1, meal by 2
   'FeedPetIntent': function () {
+    console.info('ENTRY::FeedPetIntent');
+    if (this.event.request.dialogState !== 'COMPLETED') {
+      this.emit(':delegate');
+      console.info('EXIT::FeedPetIntent::delegate');
+      return;
+    } else { 
+      getPlayer(this.event.context.System.user.userId).then((player) => {
+        if (!player) {
+          var speechOutput = 'It appears as though you havn\'t got a pet. To create a new pet just say "I want a new pet"'
+          var reprompt = 'Remember - if you\'re not sure what to do next, you can ask for help.'
+          this.emit(':ask', speechOutput, reprompt);
+          console.info('EXIT::FeedPetIntent::NewPlayer');
+          return;
+        } else {
+          var food = this.event.request.intent.slots.foodType.value;
+          if (food === 'meal') {
+          
+          } else if (food === 'snack') {
+
+          }
+        }
+      });
+    }
     //if not enough credits do nothing and inform user
     //if feeding meal deduct 4 credits and increase health by 2
     //if feeding snack deduct 2 credits and increase health by 1
@@ -269,14 +292,17 @@ var handlers = {
     //inform user of pets status
     this.emit(':tell', 'Feature coming soon');
   },
-  //pet tamogitchi intent - increase happiness by 1
-  'LovePetIntent': function () {
-    this.emit(':tell', 'Feature coming soon');
-  },
+
   //play high/low with pet intent - earns credits, can overplay, increase happiness by 2
   //play left/right with pet intent - earns credits, can overplay, increase happiness by 2
   'PlayGameIntent': function () {
+    // The Tamagotchi presents a number, and the player must guess whether the next 
+    // number it thinks of will be higher or lower than the displayed number.
+    // It cannot pick a number higher than 9, or lower than 1. 
+    // 3 or more correct gusses out of 5 is a win
     this.emit(':tell', 'Feature coming soon');
+    // The user must guess whether their Tamagotchi turns left or right, 
+    // and a minimum of 3 correct guesses out of 5 is a win
   },
   //cleanup after tamogotchi - costs credits, cant cleanup
   'CleanPetIntent': function () {
