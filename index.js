@@ -276,21 +276,49 @@ var handlers = {
         } else {
           var food = this.event.request.intent.slots.foodType.value;
           if (food === 'meal') {
-          
+            if (player.credits < 4) {
+              var speechOutput = `I'm sorry you can't afford that. A meal for your pet costs 4 credits. You only have ${player.credits} credits`
+              var reprompt = 'You can earn more credits by playing a game with your pet'
+              this.emit(':ask', speechOutput, reprompt);
+              console.info('EXIT::FeedPetIntent::CantAffordMeal');
+              return;
+            } else { 
+              player.pet.healthMetric += 2;
+              player.pet.lastFed = new Date().toISOString();
+              if (player.pet.healthMetric > 5) { 
+                player.pet.isOverfed = true;
+              }
+            }  
           } else if (food === 'snack') {
-
+            if (player.credits < 2) {
+              var speechOutput = `I'm sorry you can't afford that. A snack for your pet costs 2 credits. You only have ${player.credits} credits`
+              var reprompt = 'You can earn more credits by playing a game with your pet'
+              this.emit(':ask', speechOutput, reprompt);
+              console.info('EXIT::FeedPetIntent::CantAffordSnack');
+              return;
+            } else {
+              player.pet.healthMetric += 1;
+              player.pet.lastFed = new Date().toISOString();
+              if (player.pet.healthMetric > 5) {
+                player.pet.isOverfed = true;
+              }
+            }   
           }
+          //updatepet
+          updatePetStatus(player.pet);
+          //put pet to db
+          dynamoDBHelper.put(player);
+          //speechoutput
+          var speechOutput = `What delicious food that was!
+          Your pet is now ${player.pet.healthStatus} and he feels ${player.pet.happyStatus}
+          What do you want to do next?`;
+          var reprompt = 'Remember - if you\'re not sure what to do next, you can ask for help at any time.';
+          this.emit(':ask', speechOutput, reprompt);
+          console.info('EXIT::FeedPetIntent::SuccessfulFeed');
+          return;
         }
       });
     }
-    //if not enough credits do nothing and inform user
-    //if feeding meal deduct 4 credits and increase health by 2
-    //if feeding snack deduct 2 credits and increase health by 1
-    //if health is > 5 set overrfed to true and set health to 5
-    //update last fed time
-    //updatepet
-    //inform user of pets status
-    this.emit(':tell', 'Feature coming soon');
   },
 
   //play high/low with pet intent - earns credits, can overplay, increase happiness by 2
