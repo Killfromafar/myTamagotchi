@@ -13,10 +13,17 @@ function getPlayer(userId) {
   return dynamoDBHelper.get(config.get('dynamo.tables.players.name'), queryKeyValues);
 }
 
-function updatePetStatus(pet) {
-  doAgeCalculation(pet);
-  doHealthUpdate(pet);
-  doHappinessUpdate(pet);
+function putPlayer(player) {
+  // fire and forget? or should I wait to confirm the updated player is saved?
+  // :thinking-face:
+  dynamoDBHelper.put(config.get('dynamo.tables.players.name'), player);
+}
+
+function updatePlayerStatus(player) {
+  doAgeCalculation(player.pet);
+  doHealthUpdate(player.pet);
+  doHappinessUpdate(player.pet);
+  putPlayer(player);
 }
 
 function doHealthUpdate(pet) {
@@ -92,14 +99,32 @@ function doHealthUpdate(pet) {
 function doHappinessUpdate(pet) {
 
   //if sick decrease happiness by 1
+  if (pet.isSick) { 
+    pet.happyMetric -= 1;
+  }
   //if overplayed decrease happiness by 1.5
+  if (pet.isOverPlayed) {
+    pet.happyMetric -= 1;
+   }
   //for every hour over 4 hours since last played then decrease happiness by 1
+  var currentTime = new Date().getTime();
+  var lastPlayTime = new Date(pet.lastPlayedWith).getTime();
+  var hoursPassedSinceFed = Math.floor(Math.abs(currentTime - lastPlayTime) / 36e5) - 4;
+  if (hoursPassedSinceFed > 0) {
+    pet.happyMetric -= hoursPassedSinceFed;
+  }
   //for every hour over 4 hours since last cleaned then decrease happiness by 0.5
+  var lastCleanedTime = new Date(pet.lastCleaned).getTime();
+  var hoursPassedSinceCleaneed = Math.floor(Math.abs(currentTime - lastCleanedTime) / 36e5) - 4;
+  if (hoursPassedSinceCleaneed > 0) {
+    pet.happyMetric -= hoursPassedSinceCleaneed / 2;
+  }
 
-  //if happiness is now 3-3.9 then roll dice for 40% of sickness
-  //if happiness is 2-2.9 then 70% chance of sickness
-  //if happiness is 0.1-1.9 then 90% of sickness
-  //if happiness is 0 or less then die
+  //if happiness is < 0 deduct negative happines from health and set happiness to 0
+  if (pet.happyMetric < 0) {
+    pet.healthMetric -= (happyMetric *= -1);
+    pet.happyMetric = 0;
+  }
 }
 
 function doAgeCalculation(pet) {
