@@ -9,7 +9,7 @@ function doHealthUpdate(pet) {
   //DO HEALTH DETORIATION
   //if overfed then decrease health by 1.5
   if (pet.isOverfed) {
-    pet.healthMetric -= 0.5;
+    pet.healthMetric -= 1.5;
     pet.isOverfed = false;
   }
   //for every hour over 4 hours since last fed then decrease health by 1
@@ -68,6 +68,13 @@ function doHealthUpdate(pet) {
       pet.causeOfDeath = 'AGE';
     }
   }
+  if (pet.healthMetric >= 4) {
+    pet.healthStatus = 'HEALTHY';
+  } else if (pet.healthMetric < 4 && pet.healthMetric > 2) {
+    pet.healthStatus = 'FRAIL';
+  } else if (pet.healthMetric <= 2) {
+    pet.healthStatus = 'SICK';
+  }
   //if health is 0 or below then die
   if (pet.healthMetric <= 0) {
     pet.isAlive = false;
@@ -103,6 +110,14 @@ function doHappinessUpdate(pet) {
   if (pet.happyMetric < 0) {
     pet.healthMetric -= (pet.happyMetric *= -1);
     pet.happyMetric = 0;
+  }
+
+  if (pet.happyStatus >= 4) {
+    pet.healthStatus = 'HAPPY';
+  } else if (pet.happyStatus < 4 && pet.happyStatus > 2) {
+    pet.healthStatus = 'INDIFFERENT';
+  } else if (pet.happyStatus <= 2) {
+    pet.healthStatus = 'UNHAPPY';
   }
 }
 
@@ -179,26 +194,18 @@ function generateRandomNumber(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-function prepareHighLow() {
-  let firstNumber;
-  let secondNumber;
-  let correctAnswer;
-
+function setupHighLowGame(player) {
   do {
-    firstNumber = generateRandomNumber(1, 9);
-    secondNumber = generateRandomNumber(1, 9);
-  } while (firstNumber === secondNumber);
-
-  if (firstNumber > secondNumber) {
-    correctAnswer = 'below';
+    player.firstNumber = generateRandomNumber(1, 9);
+    player.secondNumber = generateRandomNumber(1, 9);
+  } while (player.firstNumber === player.secondNumber);
+  if (player.firstNumber > player.secondNumber) {
+    player.correctAnswer = 'lower';
   } else {
-    correctAnswer = 'above';
+    player.correctAnswer = 'higher';
   }
-  return {
-    correctAnswer: correctAnswer,
-    firstNumber: firstNumber,
-    secondNumber: secondNumber
-  };
+  player.gameInProgress = true;
+  putPlayer(player);
 }
 
 const handlers = {
@@ -207,7 +214,6 @@ const handlers = {
     //check database for this user
     getPlayer(this.event.context.System.user.userId).then((player) => {
       updatePlayerStatus(player);
-      console.log('HERE DE PLAYER', JSON.stringify(player));
       //if they are not in database begin new tamagotchi convo
       if (player) {
         let speechOutput;
@@ -398,75 +404,141 @@ const handlers = {
     }
   },
 
+  'GuessHighIntent': function () {
+    getPlayer(this.event.context.System.user.userId).then((player) => {
+      let speechOutput;
+      let reprompt;
+      let secondNumber;
+      if (!player.gameInProgress) {
+        speechOutput = 'Remember - To find out your current pets status you can ask "How\'s my pet?". What would you like to do?\' ';
+        this.emit(':ask', speechOutput, speechOutput);
+        return;
+      }
+      updatePlayerStatus(player);
+      if (player.correctAnswer === 'higher') {
+        player.gameWins += 1;
+        secondNumber = player.secondNumber;
+        if (player.gameWins >= 3) {
+          player.pet.happyMetric += 1;
+          player.credits += 2;
+          player.gameInProgress = false;
+          putPlayer(player);
+          speechOutput = 'Congratulations you have won. Your pet is happier and you have earned 2 credits. What would you like to do next?';
+          reprompt = 'Remember - To find out your current pets status you can ask "How\'s my pet?". What would you like to do?\' ';
+          this.emit(':ask', speechOutput, reprompt);
+          return;
+        }
+        if (player.gameRounds >= 5) {
+          player.pet.happyMetric += 1;
+          player.gameInProgress = false;
+          putPlayer(player);
+          speechOutput = 'Unfortunatley you have lost this time. However, your pet is now happier. What would you like to do next?';
+          reprompt = 'Remember - To find out your current pets status you can ask "How\'s my pet?". What would you like to do?\' ';
+          this.emit(':ask', speechOutput, reprompt);
+          return;
+        }
+        setupHighLowGame(player);
+        speechOutput = `Thats correct, the next number was ${secondNumber}. Time for another round.`;
+        reprompt = `I have chosen the number ${player.firstNumber}, will the next one be higher or lower?`;
+        this.emit(':ask', `${speechOutput} ${reprompt}`, reprompt);
+        return;
+      }
+      player.gameRounds += 1;
+      if (player.gameRounds >= 5) {
+        player.pet.happyMetric += 1;
+        player.gameInProgress = false;
+        putPlayer(player);
+        speechOutput = 'Unfortunatley you have lost this time. However, your pet is now happier. What would you like to do next?';
+        reprompt = 'Remember - To find out your current pets status you can ask "How\'s my pet?". What would you like to do?\' ';
+        this.emit(':ask', speechOutput, reprompt);
+        return;
+      }
+      secondNumber = player.secondNumber;
+      setupHighLowGame(player);
+      speechOutput = `You guessed wrong! The next number was ${secondNumber}. Time for another round.`;
+      reprompt = `I have chosen the number ${player.firstNumber}, will the next one be higher or lower?`;
+      this.emit(':ask', `${speechOutput} ${reprompt}`, reprompt);
+      return;
+    }).catch((error) => {
+      console.error(`An error occurred: ${error}`);
+      this.emit(':tell', 'I\'m sorry, something went wrong');
+    });
+  },
+
+  'GuessLowIntent': function () {
+    getPlayer(this.event.context.System.user.userId).then((player) => {
+      let speechOutput;
+      let reprompt;
+      let secondNumber;
+      if (!player.gameInProgress) {
+        speechOutput = 'Remember - To find out your current pets status you can ask "How\'s my pet?". What would you like to do?\' ';
+        this.emit(':ask', speechOutput, speechOutput);
+        return;
+      }
+      updatePlayerStatus(player);
+      if (player.correctAnswer === 'lower') {
+        player.gameWins += 1;
+        secondNumber = player.secondNumber;
+        if (player.gameWins >= 3) {
+          player.pet.happyMetric += 1;
+          player.credits += 2;
+          player.gameInProgress = false;
+          putPlayer(player);
+          speechOutput = 'Congratulations you have won. Your pet is happier and you have earned 2 credits. What would you like to do next?';
+          reprompt = 'Remember - To find out your current pets status you can ask "How\'s my pet?". What would you like to do?\' ';
+          this.emit(':ask', speechOutput, reprompt);
+          return;
+        }
+        if (player.gameRounds >= 5) {
+          player.pet.happyMetric += 1;
+          player.gameInProgress = false;
+          putPlayer(player);
+          speechOutput = 'Unfortunatley you have lost this time. However, your pet is now happier. What would you like to do next?';
+          reprompt = 'Remember - To find out your current pets status you can ask "How\'s my pet?". What would you like to do?\' ';
+          this.emit(':ask', speechOutput, reprompt);
+          return;
+        }
+        setupHighLowGame(player);
+        speechOutput = `Thats correct, the next number was ${secondNumber}. Time for another round.`;
+        reprompt = `I have chosen the number ${player.firstNumber}, will the next one be higher or lower?`;
+        this.emit(':ask', `${speechOutput} ${reprompt}`, reprompt);
+        return;
+      }
+      player.gameRounds += 1;
+      if (player.gameRounds >= 5) {
+        player.pet.happyMetric += 1;
+        player.gameInProgress = false;
+        putPlayer(player);
+        speechOutput = 'Unfortunatley you have lost this time. However, your pet is now happier. What would you like to do next?';
+        reprompt = 'Remember - To find out your current pets status you can ask "How\'s my pet?". What would you like to do?\' ';
+        this.emit(':ask', speechOutput, reprompt);
+        return;
+      }
+      secondNumber = player.secondNumber;
+      setupHighLowGame(player);
+      speechOutput = `You guessed wrong! The next number was ${secondNumber}. Time for another round.`;
+      reprompt = `I have chosen the number ${player.firstNumber}, will the next one be higher or lower?`;
+      this.emit(':ask', `${speechOutput} ${reprompt}`, reprompt);
+      return;
+    }).catch((error) => {
+      console.error(`An error occurred: ${error}`);
+      this.emit(':tell', 'I\'m sorry, something went wrong');
+    });
+  },
+
   'PlayGameIntent': function () {
     getPlayer(this.event.context.System.user.userId).then((player) => {
       updatePlayerStatus(player);
-      let highLowGame;
-      let speechOutput = '';
-      let reprompt;
-      if (!player.gameInProgress) {
-        highLowGame = prepareHighLow();
-        player.gameInProgress = true;
-        player.gameType = 'highLow';
-        player.firstNumber = highLowGame.firstNumber;
-        player.correctAnswer = highLowGame.correctAnswer;
-        player.secondNumber = highLowGame.secondNumber;
-        putPlayer(player);
-        if (player.gameRounds > 0) {
-          if (player.wonLastRound) {
-            speechOutput = `You were right, I was thinking of the number ${player.secondNumber}. Lets go again.`;
-          } else {
-            speechOutput = `You were wrong, I was thinking of the number ${player.secondNumber}. Lets go again.`;
-          }
-        }
-        speechOutput = `${speechOutput} I have chosen the number ${highLowGame.firstNumber}, do you think the next one will be above or below it?`;
-        putPlayer(player);
-        this.emit(':elicitSlot', 'highLowGame', speechOutput, speechOutput);
-      }
-      if (player.gameInProgress && player.gameType === 'highLow') {
-        var playerGuess = this.event.request.intent.slots.highLowGame.value;
-        console.log('OBJECT:', JSON.stringify(this.event.request.intent));
-        console.log('PLAYERGUESS:', playerGuess);
-        console.log('CORRECTANSWER:', player.correctAnswer);
-        if (playerGuess.toUpperCase() === player.correctAnswer.toUpperCase()) {
-          player.wonLastRound = true;
-          player.gameWins += 1;
-        } else {
-          player.wonLastRound = false;
-        }
-        player.gameRounds += 1;
-        if (player.gameWins >= 3) {
-          player.credits += 2;
-          player.gameWins = 0;
-          player.gameRounds = 0;
-          player.pet.happyMetric += 1;
-          if (player.pet.happyMetric > 5) {
-            player.pet.isOverPlayed = true;
-          }
-          speechOutput = 'Congratulations you have won. You have earned 2 credits and your pets happiness has increased. What would you like to do next?';
-          reprompt = 'Remember - To find out your current pets status you can ask "How\'s my pet?". What would you like to do?\' ';
-          player.shouldEndGame = true;
-        } else if (player.gameRounds >= 5) {
-          speechOutput = 'Unfortunatley you lost this time! However your pets happiness has still increased';
-          player.gameWins = 0;
-          player.gameRounds = 0;
-          player.pet.happyMetric += 1;
-          if (player.pet.happyMetric > 5) {
-            player.pet.isOverPlayed = true;
-          }
-          player.shouldEndGame = true;
-        }
-        player.gameInProgress = false;
-        // this.event.request.intent.slots.highLowGame.value = undefined;
-        putPlayer(player);
-        if (player.shouldEndGame) {
-          this.emit(':ask', speechOutput, reprompt);
-        } else {
-          this.emit('PlayGameIntent');
-        }
-      }
+      // if (player.gameInProgress === true) {
+      //reset game
+      player.gameRounds = 0;
+      player.gameWins = 0;
+      // }
+      setupHighLowGame(player);
+      var speechOutput = `I have chosen the number ${player.firstNumber}, will the next one be higher or lower?`;
+      this.emit(':ask', speechOutput, speechOutput);
     }).catch((error) => {
-      console.error(`An error occurred whilst fetching player from DB: ${error}`);
+      console.error(`An error occurred: ${error}`);
       this.emit(':tell', 'I\'m sorry, something went wrong');
     });
   },
@@ -511,7 +583,7 @@ const handlers = {
 
   'Unhandled': function () {
     console.info('ENTRY Unhandled');
-    this.emit(':tell', 'Im sorry but something went wrong');
+    this.emit(':tell', 'Im sorry but I cant do that');
     console.info('EXIT Unhandled');
     return;
   },
