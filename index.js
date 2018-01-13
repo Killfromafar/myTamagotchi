@@ -152,6 +152,9 @@ function doAgeCalculation(pet) {
 }
 
 function updatePlayerStatus(player) {
+  if (!player.pet.isAlive) {
+    return player;
+  }
   doAgeCalculation(player.pet);
   doHealthUpdate(player.pet);
   doHappinessUpdate(player.pet);
