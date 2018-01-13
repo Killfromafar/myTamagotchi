@@ -5,25 +5,6 @@ const config = require('config');
 const Alexa = require('alexa-sdk');
 const dynamoDBHelper = require(__dirname + '/lib/dynamoDBHelper');
 
-
-function getPlayer(userId) {
-  const queryKeyValues = {
-    userId: userId
-  };
-  return dynamoDBHelper.get(config.get('dynamo.tables.players.name'), queryKeyValues);
-}
-
-function putPlayer(player) {
-  // fire and forget? or should I wait to confirm the updated player is saved?
-  // :thinking-face:
-  console.info('putting status: ', JSON.stringify(player));
-  dynamoDBHelper.put(config.get('dynamo.tables.players.name'), player);
-}
-
-function generateRandomNumber(min, max) {
-  return Math.floor(Math.random() * (max - min + 1) + min);
-}
-
 function doHealthUpdate(pet) {
   //DO HEALTH DETORIATION
   //if overfed then decrease health by 1.5
@@ -174,8 +155,25 @@ function updatePlayerStatus(player) {
   doAgeCalculation(player.pet);
   doHealthUpdate(player.pet);
   doHappinessUpdate(player.pet);
-  putPlayer(player);
+  return player;
 }
+
+function getPlayer(userId) {
+  const queryKeyValues = {
+    userId: userId
+  };
+  return updatePlayerStatus(dynamoDBHelper.get(config.get('dynamo.tables.players.name'), queryKeyValues));
+}
+
+function putPlayer(player) {
+  updatePlayerStatus(player);
+  dynamoDBHelper.put(config.get('dynamo.tables.players.name'), player);
+}
+
+function generateRandomNumber(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
 function prepareHighLow() {
   let firstNumber;
   let secondNumber;
@@ -204,8 +202,6 @@ const handlers = {
     getPlayer(this.event.context.System.user.userId).then((player) => {
       //if they are not in database begin new tamagotchi convo
       if (player) {
-        //Calculate new status' of pet
-        updatePlayerStatus(player);
         let speechOutput;
         let reprompt;
         if (player.pet.isAlive) {
@@ -368,8 +364,6 @@ const handlers = {
               }
             }
           }
-          //updatepet
-          updatePlayerStatus(player);
           //put pet to db
           dynamoDBHelper.put(player);
           //speechoutput
@@ -412,12 +406,18 @@ const handlers = {
         if (player.gameWins >= 3) {
           player.credits += 2;
           player.pet.happyMetric += 1;
+          if (player.pet.happyMetric > 5) {
+            player.pet.isOverPlayed = true;
+          }
           speechOutput = 'Congratulations you have won. You have earned 2 credits and your pets happiness has increased. What would you like to do next?';
           reprompt = 'Remember - To find out your current pets status you can ask "How\'s my pet?". What would you like to do?\' ';
           shouldEndGame = true;
         } else if (player.gameRounds >= 5) {
           speechOutput = 'Unfortunatley you lost this time! However your pets happiness ha still increased';
           player.pet.happyMetric += 1;
+          if (player.pet.happyMetric > 5) {
+            player.pet.isOverPlayed = true;
+          }
           shouldEndGame = true;
         }
         player.gameInProgress = false;
@@ -453,8 +453,6 @@ const handlers = {
     //check database for this user
     getPlayer(this.event.context.System.user.userId).then((player) => {
       if (player) {
-        //Calculate new status' of pet
-        updatePlayerStatus(player);
         //report pets status
         const speechOutput = `Your pet is feeling ${player.pet.happyStatus} and he is ${player.pet.healthStatus}... 
       Your pet is a ${player.pet.age} year old ${player.pet.stage} and he weighs ${player.pet.weight} pounds...
