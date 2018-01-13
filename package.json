@@ -4,7 +4,8 @@
   "description": "Jesica's Tamagotchi skill",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "bst": "bst proxy lambda index.js",
+    "lint": "eslint *"
   },
   "keywords": [
     "alexa",
@@ -15,6 +16,10 @@
   "Author": "Jessica Duffy",
   "license": "Apache-2.0",
   "dependencies": {
+    "eslint": "^4.10.0",
+    "eslint-plugin-mocha": "^4.11.0",
+    "eslint-plugin-promise": "^3.5.0",
+    "eslint-plugin-spellcheck": "^0.0.8",
     "alexa-sdk": "^1.0.10",
     "config": "^1.26.2"
   }

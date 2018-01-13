@@ -1,1 +1,9 @@
 node_modules
+buildFolder
+.vscode
+makefile
+PinkTam108.png
+PinkTam512.png
+README.md
+npm-debug.log
+package.json
