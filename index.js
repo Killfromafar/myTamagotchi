@@ -16,7 +16,6 @@ function doHealthUpdate(pet) {
   const currentTime = new Date().getTime();
   const lastFedTime = new Date(pet.lastFed).getTime();
   const hoursPassedSinceFed = Math.floor(Math.abs(currentTime - lastFedTime) / 36e5) - 4;
-  console.log('*********', currentTime, lastFedTime, hoursPassedSinceFed);
   if (hoursPassedSinceFed > 0) {
     pet.healthMetric -= hoursPassedSinceFed;
   }
@@ -152,6 +151,9 @@ function doAgeCalculation(pet) {
 }
 
 function updatePlayerStatus(player) {
+  if (!player) {
+    return player;
+  }
   if (!player.pet.isAlive) {
     return player;
   }
@@ -165,7 +167,7 @@ function getPlayer(userId) {
   const queryKeyValues = {
     userId: userId
   };
-  return updatePlayerStatus(dynamoDBHelper.get(config.get('dynamo.tables.players.name'), queryKeyValues));
+  return dynamoDBHelper.get(config.get('dynamo.tables.players.name'), queryKeyValues);
 }
 
 function putPlayer(player) {
@@ -188,13 +190,14 @@ function prepareHighLow() {
   } while (firstNumber === secondNumber);
 
   if (firstNumber > secondNumber) {
-    correctAnswer = 'LOWER';
+    correctAnswer = 'below';
   } else {
-    correctAnswer = 'HIGHER';
+    correctAnswer = 'above';
   }
   return {
     correctAnswer: correctAnswer,
-    firstNumber: firstNumber
+    firstNumber: firstNumber,
+    secondNumber: secondNumber
   };
 }
 
@@ -203,6 +206,8 @@ const handlers = {
     console.info('ENTRY LaunchRequest');
     //check database for this user
     getPlayer(this.event.context.System.user.userId).then((player) => {
+      updatePlayerStatus(player);
+      console.log('HERE DE PLAYER', JSON.stringify(player));
       //if they are not in database begin new tamagotchi convo
       if (player) {
         let speechOutput;
@@ -240,6 +245,7 @@ const handlers = {
     const intentObj = this.event.request.intent;
     if (intentObj.confirmationStatus === 'CONFIRMED') {
       getPlayer(this.event.context.System.user.userId).then((existingPlayer) => {
+        updatePlayerStatus(existingPlayer);
         //If there is no player in DB then create new player and pet obj and put to DB
         if (!existingPlayer) {
           const player = {
@@ -259,15 +265,21 @@ const handlers = {
               lastFed: new Date().toISOString(),
               lastCleaned: new Date().toISOString()
             },
+            userId: this.event.context.System.user.userId,
             creationTime: new Date().toISOString(),
             petsAbandoned: 0,
             petsDiedOfOldAge: 0,
             petsDiedOfSickness: 0,
             credits: 0,
             medPacks: 0,
-            userId: this.event.context.System.user.userId
+            gameInProgress: false,
+            gameType: 'NONE',
+            gameWins: 0,
+            gameRounds: 0,
+            shouldEndGame: false,
+            wonLastRound: false
           };
-          dynamoDBHelper.put(config.get('dynamo.tables.players.name'), player);
+          putPlayer(player);
           const speechOutput = `Congratulations on your new pet! 
           Your pet is ${player.pet.healthStatus} but he feels ${player.pet.happyStatus}. 
           Why don't you play a game to bond with your new pet?`;
@@ -295,7 +307,7 @@ const handlers = {
             lastFed: new Date().toISOString(),
             lastCleaned: new Date().toISOString()
           };
-          dynamoDBHelper.put(config.get('dynamo.tables.players.name'), existingPlayer);
+          putPlayer(existingPlayer);
           //report pets status
           const speechOutput = `Congratulations on your new pet! 
           Your pet is ${existingPlayer.pet.healthStatus} but he feels ${existingPlayer.pet.happyStatus}. 
@@ -330,6 +342,7 @@ const handlers = {
       return;
     } else {
       getPlayer(this.event.context.System.user.userId).then((player) => {
+        updatePlayerStatus(player);
         if (!player) {
           const speechOutput = 'It appears as though you havn\'t got a pet. To create a new pet just say "I want a new pet"';
           const reprompt = 'Remember - if you\'re not sure what to do next, you can ask for help.';
@@ -368,7 +381,7 @@ const handlers = {
             }
           }
           //put pet to db
-          dynamoDBHelper.put(player);
+          putPlayer(player);
           //speechoutput
           const speechOutput = `What delicious food that was!
           Your pet is now ${player.pet.healthStatus} and he feels ${player.pet.happyStatus}
@@ -385,48 +398,68 @@ const handlers = {
     }
   },
 
-
   'PlayGameIntent': function () {
     getPlayer(this.event.context.System.user.userId).then((player) => {
+      updatePlayerStatus(player);
       let highLowGame;
-      let speechOutput;
+      let speechOutput = '';
       let reprompt;
-      let shouldEndGame;
       if (!player.gameInProgress) {
         highLowGame = prepareHighLow();
         player.gameInProgress = true;
         player.gameType = 'highLow';
+        player.firstNumber = highLowGame.firstNumber;
+        player.correctAnswer = highLowGame.correctAnswer;
+        player.secondNumber = highLowGame.secondNumber;
         putPlayer(player);
-        speechOutput = `I chose the number ${highLowGame.firstNumber}, do you think the next one will be higher or lower?`;
+        if (player.gameRounds > 0) {
+          if (player.wonLastRound) {
+            speechOutput = `You were right, I was thinking of the number ${player.secondNumber}. Lets go again.`;
+          } else {
+            speechOutput = `You were wrong, I was thinking of the number ${player.secondNumber}. Lets go again.`;
+          }
+        }
+        speechOutput = `${speechOutput} I have chosen the number ${highLowGame.firstNumber}, do you think the next one will be above or below it?`;
+        putPlayer(player);
         this.emit(':elicitSlot', 'highLowGame', speechOutput, speechOutput);
       }
       if (player.gameInProgress && player.gameType === 'highLow') {
-        const playerGuess = this.event.request.intent.slots.highLowGame.value;
-        if (playerGuess === highLowGame.correctAnswer) {
+        var playerGuess = this.event.request.intent.slots.highLowGame.value;
+        console.log('OBJECT:', JSON.stringify(this.event.request.intent));
+        console.log('PLAYERGUESS:', playerGuess);
+        console.log('CORRECTANSWER:', player.correctAnswer);
+        if (playerGuess.toUpperCase() === player.correctAnswer.toUpperCase()) {
+          player.wonLastRound = true;
           player.gameWins += 1;
+        } else {
+          player.wonLastRound = false;
         }
         player.gameRounds += 1;
         if (player.gameWins >= 3) {
           player.credits += 2;
+          player.gameWins = 0;
+          player.gameRounds = 0;
           player.pet.happyMetric += 1;
           if (player.pet.happyMetric > 5) {
             player.pet.isOverPlayed = true;
           }
           speechOutput = 'Congratulations you have won. You have earned 2 credits and your pets happiness has increased. What would you like to do next?';
           reprompt = 'Remember - To find out your current pets status you can ask "How\'s my pet?". What would you like to do?\' ';
-          shouldEndGame = true;
+          player.shouldEndGame = true;
         } else if (player.gameRounds >= 5) {
-          speechOutput = 'Unfortunatley you lost this time! However your pets happiness ha still increased';
+          speechOutput = 'Unfortunatley you lost this time! However your pets happiness has still increased';
+          player.gameWins = 0;
+          player.gameRounds = 0;
           player.pet.happyMetric += 1;
           if (player.pet.happyMetric > 5) {
             player.pet.isOverPlayed = true;
           }
-          shouldEndGame = true;
+          player.shouldEndGame = true;
         }
         player.gameInProgress = false;
-        this.event.request.intent.slots.highLowGame.value = undefined;
+        // this.event.request.intent.slots.highLowGame.value = undefined;
         putPlayer(player);
-        if (shouldEndGame) {
+        if (player.shouldEndGame) {
           this.emit(':ask', speechOutput, reprompt);
         } else {
           this.emit('PlayGameIntent');
@@ -436,7 +469,6 @@ const handlers = {
       console.error(`An error occurred whilst fetching player from DB: ${error}`);
       this.emit(':tell', 'I\'m sorry, something went wrong');
     });
-    this.emit(':tell', 'Feature coming soon');
   },
   //cleanup after tamogotchi - costs credits, cant cleanup
   'CleanPetIntent': function () {
@@ -455,6 +487,7 @@ const handlers = {
     console.info('ENTRY StatusIntent');
     //check database for this user
     getPlayer(this.event.context.System.user.userId).then((player) => {
+      updatePlayerStatus(player);
       if (player) {
         //report pets status
         const speechOutput = `Your pet is feeling ${player.pet.happyStatus} and he is ${player.pet.healthStatus}... 
