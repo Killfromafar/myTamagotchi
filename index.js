@@ -420,6 +420,9 @@ const handlers = {
         secondNumber = player.secondNumber;
         if (player.gameWins >= 3) {
           player.pet.happyMetric += 1;
+          if (player.pet.happyMetric > 5) {
+            player.pet.isOverPlayed = true;
+          }
           player.credits += 2;
           player.gameInProgress = false;
           putPlayer(player);
@@ -430,6 +433,9 @@ const handlers = {
         }
         if (player.gameRounds >= 5) {
           player.pet.happyMetric += 1;
+          if (player.pet.happyMetric > 5) {
+            player.pet.isOverPlayed = true;
+          }
           player.gameInProgress = false;
           putPlayer(player);
           speechOutput = 'Unfortunatley you have lost this time. However, your pet is now happier. What would you like to do next?';
@@ -446,6 +452,9 @@ const handlers = {
       player.gameRounds += 1;
       if (player.gameRounds >= 5) {
         player.pet.happyMetric += 1;
+        if (player.pet.happyMetric > 5) {
+          player.pet.isOverPlayed = true;
+        }
         player.gameInProgress = false;
         putPlayer(player);
         speechOutput = 'Unfortunatley you have lost this time. However, your pet is now happier. What would you like to do next?';
@@ -481,6 +490,9 @@ const handlers = {
         secondNumber = player.secondNumber;
         if (player.gameWins >= 3) {
           player.pet.happyMetric += 1;
+          if (player.pet.happyMetric > 5) {
+            player.pet.isOverPlayed = true;
+          }
           player.credits += 2;
           player.gameInProgress = false;
           putPlayer(player);
@@ -491,6 +503,9 @@ const handlers = {
         }
         if (player.gameRounds >= 5) {
           player.pet.happyMetric += 1;
+          if (player.pet.happyMetric > 5) {
+            player.pet.isOverPlayed = true;
+          }
           player.gameInProgress = false;
           putPlayer(player);
           speechOutput = 'Unfortunatley you have lost this time. However, your pet is now happier. What would you like to do next?';
@@ -507,6 +522,9 @@ const handlers = {
       player.gameRounds += 1;
       if (player.gameRounds >= 5) {
         player.pet.happyMetric += 1;
+        if (player.pet.happyMetric > 5) {
+          player.pet.isOverPlayed = true;
+        }
         player.gameInProgress = false;
         putPlayer(player);
         speechOutput = 'Unfortunatley you have lost this time. However, your pet is now happier. What would you like to do next?';
