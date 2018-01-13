@@ -88,9 +88,9 @@ function doHappinessUpdate(pet) {
   if (pet.isSick) {
     pet.happyMetric -= 1;
   }
-  //if overplayed decrease happiness by 1.5
+  //if overplayed decrease happiness by 2
   if (pet.isOverPlayed) {
-    pet.happyMetric -= 1;
+    pet.happyMetric -= 2;
   }
   //for every hour over 4 hours since last played then decrease happiness by 1
   const currentTime = new Date().getTime();
@@ -112,12 +112,12 @@ function doHappinessUpdate(pet) {
     pet.happyMetric = 0;
   }
 
-  if (pet.happyStatus >= 4) {
-    pet.healthStatus = 'HAPPY';
-  } else if (pet.happyStatus < 4 && pet.happyStatus > 2) {
-    pet.healthStatus = 'INDIFFERENT';
-  } else if (pet.happyStatus <= 2) {
-    pet.healthStatus = 'UNHAPPY';
+  if (pet.happyMetric >= 4) {
+    pet.happyStatus = 'HAPPY';
+  } else if (pet.happyMetric < 4 && pet.happyMetric > 2) {
+    pet.happyStatus = 'INDIFFERENT';
+  } else if (pet.happyMetric <= 2) {
+    pet.happyStatus = 'UNHAPPY';
   }
 }
 
