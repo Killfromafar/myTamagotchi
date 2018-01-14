@@ -5,7 +5,7 @@ TODO:
 
 [x]Implement pet happiness deteoriation
 
-[]Implement PlayGameIntent
+[x]Implement PlayGameIntent
 
 []Implement CleanPetIntent
 
@@ -13,17 +13,17 @@ TODO:
 
 []Implement BuyMedpackIntent
 
-[]Remove references to the word tamagotchi and replace with pet
+[x]Remove references to the word tamagotchi and replace with pet
 
-[]Rename skill to "My voice pet"
+[x]Rename skill to "My voice pet"
 
-[]Review skill store description
+[x]Review skill store description
 
 []Turf out speechOutputs into constant strings
 
 []Turf out reprompts into constant strings
 
-[]Cleanup all comments in the code
+[x]Cleanup all comments in the code
 
 []Restructure elements into their own directories/files as appropriate
 
