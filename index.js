@@ -523,12 +523,16 @@ const handlers = {
       if (player.pet.isDirty) {
         player.pet.isDirty = false;
         player.pet.lastCleaned = new Date().getTime();
-        player.credits -= 1
+        player.credits -= 1;
         speechOutput = 'Your pets litter tray has been emptied and and sparkling clean. What do you want to do next?';
-      } else { 
+      } else {
         speechOutput = 'Your pet isnt dirty at the moment there is nothing to clean! What would you like to do instead?';
       }
-    this.emit(':ask', speechOutput, GLOBAL_REPROMPT);
+      this.emit(':ask', speechOutput, GLOBAL_REPROMPT);
+    }).catch((error) => {
+      console.error(`An error occurred whilst executing GuessLowIntent: ${error}`);
+      this.emit(':tell', 'I\'m sorry, something went wrong');
+    });
   },
 
   //treat sickness intent - costs medpack, sets health to 4
