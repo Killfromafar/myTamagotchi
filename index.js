@@ -4,25 +4,26 @@ process.env.NODE_CONFIG_DIR = __dirname + '/config';
 const config = require('config');
 const Alexa = require('alexa-sdk');
 const dynamoDBHelper = require(__dirname + '/lib/dynamoDBHelper');
+const GLOBAL_REPROMPT = 'Remember - To find out your current pets status you can ask "How\'s my pet?". What would you like to do?\' ';
 
 function doHealthUpdate(pet) {
   if (pet.isOverfed) {
-    pet.healthMetric -= 1.5;
+    pet.healthMetric -= 0.5;
     pet.isOverfed = false;
   }
   const currentTime = new Date().getTime();
   const lastFedTime = new Date(pet.lastFed).getTime();
-  const hoursPassedSinceFed = Math.floor(Math.abs(currentTime - lastFedTime) / 36e5) - 4;
+  const hoursPassedSinceFed = Math.floor(Math.abs(currentTime - lastFedTime) / 36e5) - 8;
   if (hoursPassedSinceFed > 0) {
-    pet.healthMetric -= hoursPassedSinceFed;
+    pet.healthMetric -= hoursPassedSinceFed / 2;
   }
   const lastCleanedTime = new Date(pet.lastCleaned).getTime();
-  const hoursPassedSinceCleaneed = Math.floor(Math.abs(currentTime - lastCleanedTime) / 36e5) - 4;
+  const hoursPassedSinceCleaneed = Math.floor(Math.abs(currentTime - lastCleanedTime) / 36e5) - 8;
   if (hoursPassedSinceCleaneed > 0) {
-    pet.healthMetric -= hoursPassedSinceCleaneed / 2;
+    pet.healthMetric -= hoursPassedSinceCleaneed / 4;
   }
   const lastSicknessTime = new Date(pet.dateOfSicknessCalcuation).getTime();
-  let hoursPassed = Math.floor(Math.abs(currentTime - lastSicknessTime) / 36e5) - 2;
+  let hoursPassed = Math.floor(Math.abs(currentTime - lastSicknessTime) / 36e5) - 4;
   if (hoursPassed > 0) {
     pet.dateOfSicknessCalcuation = new Date().toISOString();
   }
@@ -32,17 +33,17 @@ function doHealthUpdate(pet) {
     if (pet.healthMetric >= 3 && pet.healthMetric < 4) {
       if (diceRoll < 0.1) {
         pet.isSick = true;
-        pet.healthMetric -= 1;
+        pet.healthMetric -= 0.5;
       }
     } else if (pet.healthMetric >= 2 && pet.healthMetric < 3) {
       if (diceRoll < 0.4) {
         pet.isSick = true;
-        pet.healthMetric -= 1;
+        pet.healthMetric -= 0.5;
       }
     } else if (pet.healthMetric > 0 && pet.healthMetric < 2) {
       if (diceRoll < 0.7) {
         pet.isSick = true;
-        pet.healthMetric -= 1;
+        pet.healthMetric -= 0.5;
       }
     }
   }
@@ -69,21 +70,21 @@ function doHealthUpdate(pet) {
 
 function doHappinessUpdate(pet) {
   if (pet.isSick) {
-    pet.happyMetric -= 1;
+    pet.happyMetric -= 0.5;
   }
   if (pet.isOverPlayed) {
-    pet.happyMetric -= 2;
+    pet.happyMetric -= 1;
   }
   const currentTime = new Date().getTime();
   const lastPlayTime = new Date(pet.lastPlayedWith).getTime();
-  const hoursPassedSinceFed = Math.floor(Math.abs(currentTime - lastPlayTime) / 36e5) - 4;
+  const hoursPassedSinceFed = Math.floor(Math.abs(currentTime - lastPlayTime) / 36e5) - 8;
   if (hoursPassedSinceFed > 0) {
-    pet.happyMetric -= hoursPassedSinceFed;
+    pet.happyMetric -= hoursPassedSinceFed / 2;
   }
   const lastCleanedTime = new Date(pet.lastCleaned).getTime();
-  const hoursPassedSinceCleaneed = Math.floor(Math.abs(currentTime - lastCleanedTime) / 36e5) - 4;
+  const hoursPassedSinceCleaneed = Math.floor(Math.abs(currentTime - lastCleanedTime) / 36e5) - 8;
   if (hoursPassedSinceCleaneed > 0) {
-    pet.happyMetric -= hoursPassedSinceCleaneed / 2;
+    pet.happyMetric -= hoursPassedSinceCleaneed / 4;
   }
   if (pet.happyMetric < 0) {
     pet.healthMetric -= (pet.happyMetric *= -1);
@@ -513,14 +514,28 @@ const handlers = {
       this.emit(':tell', 'I\'m sorry, something went wrong');
     });
   },
+
   //cleanup after tamogotchi - costs credits, cant cleanup
   'CleanPetIntent': function () {
-    this.emit(':tell', 'Feature coming soon');
+    getPlayer(this.event.context.System.user.userId).then((player) => {
+      updatePlayerStatus(player);
+      let speechOutput;
+      if (player.pet.isDirty) {
+        player.pet.isDirty = false;
+        player.pet.lastCleaned = new Date().getTime();
+        player.credits -= 1
+        speechOutput = 'Your pets litter tray has been emptied and and sparkling clean. What do you want to do next?';
+      } else { 
+        speechOutput = 'Your pet isnt dirty at the moment there is nothing to clean! What would you like to do instead?';
+      }
+    this.emit(':ask', speechOutput, GLOBAL_REPROMPT);
   },
+
   //treat sickness intent - costs medpack, sets health to 4
   'TreatSicknessIntent': function () {
     this.emit(':tell', 'Feature coming soon');
   },
+
   //buy medpack - costs credits
   'BuyMedpackIntent': function () {
     this.emit(':tell', 'Feature coming soon');
