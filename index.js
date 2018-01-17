@@ -551,7 +551,7 @@ const handlers = {
       if (player) {
         const speechOutput = `Your pet is feeling ${player.pet.happyStatus} and he is ${player.pet.healthStatus}... 
       Your pet is a ${player.pet.age} year old ${player.pet.stage} and he weighs ${player.pet.weight} pounds...
-      You have ${player.credits} credits and ${player.medicinePacks} medicine packs`;
+      You have ${player.credits} credits and ${player.medPacks} medicine packs`;
         const reprompt = 'You can say thinks like "feed my pet" or "lets play a game"';
 
         this.emit(':ask', speechOutput, reprompt);
