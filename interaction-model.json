@@ -1,0 +1,186 @@
+{
+  "languageModel": {
+    "types": [
+      {
+        "name": "FOOD_TYPE",
+        "values": [
+          {
+            "id": null,
+            "name": {
+              "value": "snack",
+              "synonyms": []
+            }
+          },
+          {
+            "id": null,
+            "name": {
+              "value": "meal",
+              "synonyms": []
+            }
+          }
+        ]
+      }
+    ],
+    "intents": [
+      {
+        "name": "AMAZON.CancelIntent",
+        "samples": []
+      },
+      {
+        "name": "AMAZON.HelpIntent",
+        "samples": []
+      },
+      {
+        "name": "AMAZON.StopIntent",
+        "samples": []
+      },
+      {
+        "name": "BuyMedpackIntent",
+        "samples": [
+          "buy a first aid kit",
+          "buy a med pack",
+          "I need a first aid kit",
+          "I need a med pack"
+        ],
+        "slots": []
+      },
+      {
+        "name": "CleanPetIntent",
+        "samples": [
+          "Clean my pets litter tray",
+          "clean up after my pet",
+          "clean my pet",
+          "wash my pet",
+          "clean his litter tray",
+          "clean tray",
+          "clean pet",
+          "clean"
+        ],
+        "slots": []
+      },
+      {
+        "name": "CreateNewPetIntent",
+        "samples": [
+          "Buy a new pet",
+          "I want a new pet",
+          "new pet"
+        ],
+        "slots": []
+      },
+      {
+        "name": "FeedPetIntent",
+        "samples": [
+          "Feed my pet",
+          "feed pet"
+        ],
+        "slots": [
+          {
+            "name": "foodType",
+            "type": "FOOD_TYPE",
+            "samples": [
+              "{foodType}"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "GuessHighIntent",
+        "samples": [
+          "higher"
+        ],
+        "slots": []
+      },
+      {
+        "name": "GuessLowIntent",
+        "samples": [
+          "lower"
+        ],
+        "slots": []
+      },
+      {
+        "name": "PlayGameIntent",
+        "samples": [
+          "lets play a game",
+          "I want to play a game",
+          "lets go to the park",
+          "play a game",
+          "play with my pet"
+        ],
+        "slots": []
+      },
+      {
+        "name": "StatusIntent",
+        "samples": [
+          "hows my pet doing",
+          "whats my pets status",
+          "tell me about my pet",
+          "status",
+          "pet status",
+          "pet info"
+        ],
+        "slots": []
+      },
+      {
+        "name": "TreatSicknessIntent",
+        "samples": [
+          "administer med pack",
+          "perform first aid",
+          "perform first aid on pet",
+          "administer med pack on my pet",
+          "treat my pets sickness",
+          "treat sickness"
+        ],
+        "slots": []
+      }
+    ],
+    "invocationName": "my voice pet"
+  },
+  "prompts": [
+    {
+      "id": "Confirm.Intent-CreateNewPetIntent",
+      "variations": [
+        {
+          "type": "PlainText",
+          "value": "You can only have one active tamagotchi at a time, if you already have one then it will be put up for adoption and you will have to start again with a new one. Are you sure you want to proceed?"
+        }
+      ]
+    },
+    {
+      "id": "Elicit.Intent-FeedPetIntent.IntentSlot-foodType",
+      "variations": [
+        {
+          "type": "PlainText",
+          "value": "What do you want to feed your pet, a snack, or a meal?"
+        }
+      ]
+    }
+  ],
+  "dialog": {
+    "intents": [
+      {
+        "name": "CreateNewPetIntent",
+        "confirmationRequired": true,
+        "prompts": {
+          "confirmation": "Confirm.Intent-CreateNewPetIntent"
+        },
+        "slots": []
+      },
+      {
+        "name": "FeedPetIntent",
+        "confirmationRequired": false,
+        "prompts": {},
+        "slots": [
+          {
+            "name": "foodType",
+            "type": "FOOD_TYPE",
+            "elicitationRequired": true,
+            "confirmationRequired": false,
+            "prompts": {
+              "elicitation": "Elicit.Intent-FeedPetIntent.IntentSlot-foodType"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
