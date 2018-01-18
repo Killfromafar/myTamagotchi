@@ -515,7 +515,6 @@ const handlers = {
     });
   },
 
-  //cleanup after tamogotchi - costs credits, cant cleanup
   'CleanPetIntent': function () {
     getPlayer(this.event.context.System.user.userId).then((player) => {
       updatePlayerStatus(player);
@@ -528,6 +527,33 @@ const handlers = {
       } else {
         speechOutput = 'Your pet isnt dirty at the moment there is nothing to clean! What would you like to do instead?';
       }
+      putPlayer(player);
+      this.emit(':ask', speechOutput, GLOBAL_REPROMPT);
+      return;
+    }).catch((error) => {
+      console.error(`An error occurred whilst executing GuessLowIntent: ${error}`);
+      this.emit(':tell', 'I\'m sorry, something went wrong');
+    });
+  },
+
+  'TreatSicknessIntent': function () {
+    getPlayer(this.event.context.System.user.userId).then((player) => {
+      updatePlayerStatus(player);
+      let speechOutput;
+      if (player.medPacks <= 0) {
+        speechOutput = 'I\'m sorry but you dont have enough medpacks to treat your pets sickness. A medpack costs 2 credits. You can say "buy a med-pack" to get one. What do you want to do next?';
+        this.emit(':ask', speechOutput, GLOBAL_REPROMPT);
+        return;
+      }
+      if (!player.pet.isSick) {
+        speechOutput = 'Your pet isnt sick, what would you like to do instead?';
+        return;
+      } else {
+        player.medPacks -= 1;
+        player.pet.healthMetric = 5;
+        speechOutput = `Your pet has been treated for sickness and he is now healthy again. You now have ${player.medPacks}. What would you like to do next?`;
+        putPlayer(player);
+      }
       this.emit(':ask', speechOutput, GLOBAL_REPROMPT);
     }).catch((error) => {
       console.error(`An error occurred whilst executing GuessLowIntent: ${error}`);
@@ -535,14 +561,23 @@ const handlers = {
     });
   },
 
-  //treat sickness intent - costs medpack, sets health to 4
-  'TreatSicknessIntent': function () {
-    this.emit(':tell', 'Feature coming soon');
-  },
-
-  //buy medpack - costs credits
   'BuyMedpackIntent': function () {
-    this.emit(':tell', 'Feature coming soon');
+    getPlayer(this.event.context.System.user.userId).then((player) => {
+      updatePlayerStatus(player);
+      let speechOutput;
+      if (player.credits < 2) {
+        speechOutput = 'I\'m sorry but you dont have enough credits to buy a med-pack. Try playing a game with your pet to earn credits, What do you want to do next?';
+      } else {
+        player.credits -= 2;
+        player.medPacks += 1;
+        putPlayer(player);
+        speechOutput = `You have bought a med-pack. You now have ${player.medPacks} med-packs and ${player.credits} credits`;
+      }
+      this.emit(':ask', speechOutput, GLOBAL_REPROMPT);
+    }).catch((error) => {
+      console.error(`An error occurred whilst executing GuessLowIntent: ${error}`);
+      this.emit(':tell', 'I\'m sorry, something went wrong');
+    });
   },
 
   'StatusIntent': function () {

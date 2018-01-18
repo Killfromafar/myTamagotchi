@@ -7,11 +7,11 @@ TODO:
 
 [x]Implement PlayGameIntent
 
-[]Implement CleanPetIntent
+[x]Implement CleanPetIntent
 
-[]Implement TreatSicknessIntent
+[x]Implement TreatSicknessIntent
 
-[]Implement BuyMedpackIntent
+[x]Implement BuyMedpackIntent
 
 [x]Remove references to the word tamagotchi and replace with pet
 

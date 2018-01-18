@@ -141,7 +141,7 @@
       "variations": [
         {
           "type": "PlainText",
-          "value": "You can only have one active tamagotchi at a time, if you already have one then it will be put up for adoption and you will have to start again with a new one. Are you sure you want to proceed?"
+          "value": "You can only have one active pet at a time, if you already have one then it will be put up for adoption and you will have to start again with a new one. Are you sure you want to proceed?"
         }
       ]
     },
