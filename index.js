@@ -5,7 +5,7 @@ const config = require('config');
 const Alexa = require('alexa-sdk');
 
 //intents
-const intentAmazonCancelIntent = require(__dirname + 'IntentAmazonCancelIntent');
+const intentAmazonCancelIntent = require('IntentAmazonCancelIntent');
 const intentAmazonHelpIntent = require(__dirname + 'IntentAmazonHelpIntent');
 const intentAmazonStopIntent = require(__dirname + 'IntentAmazonStopIntent');
 const intentBuyMedpack = require(__dirname + 'IntentBuyMedpack');
