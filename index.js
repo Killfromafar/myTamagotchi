@@ -6,17 +6,17 @@ const Alexa = require('alexa-sdk');
 
 //intents
 const intentAmazonCancelIntent = require('IntentAmazonCancelIntent');
-const intentAmazonHelpIntent = require(__dirname + 'IntentAmazonHelpIntent');
-const intentAmazonStopIntent = require(__dirname + 'IntentAmazonStopIntent');
-const intentBuyMedpack = require(__dirname + 'IntentBuyMedpack');
-const intentCleanPet = require(__dirname + 'IntentCleanPet');
-const intentCreateNewPet = require(__dirname + 'IntentCreateNewPet');
-const intentFeedPet = require(__dirname + 'IntentFeedPet');
-const intentLaunchRequest = require(__dirname + 'IntentLaunchRequest');
-const intentPlayGame = require(__dirname + 'IntentPlayGame');
-const intentStatus = require(__dirname + 'IntentStatus');
-const intentTreatSickness = require(__dirname + 'IntentTreatSickness');
-const intentUnhandled = require(__dirname + 'IntentUnhandled');
+const intentAmazonHelpIntent = require('IntentAmazonHelpIntent');
+const intentAmazonStopIntent = require('IntentAmazonStopIntent');
+const intentBuyMedpack = require('IntentBuyMedpack');
+const intentCleanPet = require('IntentCleanPet');
+const intentCreateNewPet = require('IntentCreateNewPet');
+const intentFeedPet = require('IntentFeedPet');
+const intentLaunchRequest = require('IntentLaunchRequest');
+const intentPlayGame = require('IntentPlayGame');
+const intentStatus = require('IntentStatus');
+const intentTreatSickness = require('IntentTreatSickness');
+const intentUnhandled = require('IntentUnhandled');
 
 const handlers = Object.assign(
   {},
